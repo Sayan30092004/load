@@ -1,17 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import DataSidebar from "./DataSidebar";
-import TimeControls from "./TimeControls";
 import { Button } from "./ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import {
-  Settings,
-  ZoomIn,
-  ZoomOut,
-  Maximize,
-  Minimize,
-  Info,
-} from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize, Minimize } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -30,11 +21,8 @@ const WorldMapInterface: React.FC<WorldMapInterfaceProps> = ({
 }) => {
   const [selectedRegion, setSelectedRegion] = useState<string>("Global");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [activeView, setActiveView] = useState<string>("globe");
-  const globeRef = useRef<HTMLDivElement>(null);
 
   // Mock regions for demonstration
   const regions = [
@@ -66,26 +54,6 @@ const WorldMapInterface: React.FC<WorldMapInterfaceProps> = ({
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
-  };
-
-  const handleTimeChange = (time: Date) => {
-    console.log("Time changed:", time);
-    // Update data based on new time
-  };
-
-  const handleSpeedChange = (speed: number) => {
-    console.log("Animation speed changed:", speed);
-    // Update animation speed
-  };
-
-  const handlePlay = () => {
-    setIsPlaying(true);
-    // Start time-based animation
-  };
-
-  const handlePause = () => {
-    setIsPlaying(false);
-    // Pause time-based animation
   };
 
   // Animation variants for the container
@@ -134,25 +102,6 @@ const WorldMapInterface: React.FC<WorldMapInterfaceProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() =>
-                      setActiveView(activeView === "globe" ? "map" : "globe")
-                    }
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Toggle view mode</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -206,82 +155,43 @@ const WorldMapInterface: React.FC<WorldMapInterfaceProps> = ({
         <div className="flex-1 flex overflow-hidden">
           {/* Map visualization */}
           <motion.div className="flex-1 relative" variants={itemVariants}>
-            <Tabs
-              value={activeView}
-              onValueChange={setActiveView}
-              className="h-full"
-            >
-              <TabsList className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
-                <TabsTrigger value="globe">3D Globe</TabsTrigger>
-                <TabsTrigger value="map">Flat Map</TabsTrigger>
-              </TabsList>
+            <div className="w-full h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+              {/* Flat Map visualization */}
+              <div
+                className="relative w-[80%] h-[70%] bg-blue-50 dark:bg-blue-900 border border-gray-300 dark:border-gray-700"
+                style={{ transform: `scale(${zoomLevel})` }}
+              >
+                {/* Simulated continents */}
+                <div className="absolute top-[20%] left-[15%] w-[20%] h-[30%] bg-green-200 dark:bg-green-800"></div>
+                <div className="absolute top-[25%] left-[40%] w-[25%] h-[20%] bg-green-200 dark:bg-green-800"></div>
+                <div className="absolute top-[55%] left-[30%] w-[15%] h-[20%] bg-green-200 dark:bg-green-800"></div>
+                <div className="absolute top-[60%] left-[70%] w-[15%] h-[15%] bg-green-200 dark:bg-green-800"></div>
 
-              <TabsContent value="globe" className="h-full">
-                <div
-                  ref={globeRef}
-                  className="w-full h-full bg-blue-50 dark:bg-blue-950 flex items-center justify-center"
-                  style={{ transform: `scale(${zoomLevel})` }}
-                >
-                  {/* This would be replaced with actual globe visualization */}
-                  <div className="relative w-[500px] h-[500px] rounded-full bg-blue-200 dark:bg-blue-800 overflow-hidden">
-                    {/* Simulated continents */}
-                    <div className="absolute top-[20%] left-[15%] w-[20%] h-[30%] bg-green-300 dark:bg-green-700 opacity-80"></div>
-                    <div className="absolute top-[25%] left-[40%] w-[25%] h-[20%] bg-green-300 dark:bg-green-700 opacity-80"></div>
-                    <div className="absolute top-[55%] left-[30%] w-[15%] h-[20%] bg-green-300 dark:bg-green-700 opacity-80"></div>
-                    <div className="absolute top-[60%] left-[70%] w-[15%] h-[15%] bg-green-300 dark:bg-green-700 opacity-80"></div>
-
-                    {/* Hotspots for regions */}
-                    {regions.map((region) => (
-                      <Button
-                        key={region.id}
-                        variant="outline"
-                        size="sm"
-                        className={`absolute rounded-full p-1 ${selectedRegion === region.name ? "bg-red-500 text-white" : "bg-white/80"}`}
-                        style={{
-                          top: `${50 - region.coordinates.lat * 0.5}%`,
-                          left: `${50 + region.coordinates.lng * 0.5}%`,
-                          transform: "translate(-50%, -50%)",
-                        }}
-                        onClick={() => handleRegionSelect(region.name)}
-                      >
-                        <Info className="h-3 w-3" />
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="map" className="h-full">
-                <div className="w-full h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-                  {/* This would be replaced with actual flat map visualization */}
-                  <div className="relative w-[80%] h-[70%] bg-blue-50 dark:bg-blue-900 border border-gray-300 dark:border-gray-700">
-                    {/* Simulated continents */}
-                    <div className="absolute top-[20%] left-[15%] w-[20%] h-[30%] bg-green-200 dark:bg-green-800"></div>
-                    <div className="absolute top-[25%] left-[40%] w-[25%] h-[20%] bg-green-200 dark:bg-green-800"></div>
-                    <div className="absolute top-[55%] left-[30%] w-[15%] h-[20%] bg-green-200 dark:bg-green-800"></div>
-                    <div className="absolute top-[60%] left-[70%] w-[15%] h-[15%] bg-green-200 dark:bg-green-800"></div>
-
-                    {/* Hotspots for regions */}
-                    {regions.map((region) => (
-                      <Button
-                        key={region.id}
-                        variant="outline"
-                        size="sm"
-                        className={`absolute ${selectedRegion === region.name ? "bg-red-500 text-white" : "bg-white/80"}`}
-                        style={{
-                          top: `${50 - region.coordinates.lat * 0.7}%`,
-                          left: `${50 + region.coordinates.lng * 0.4}%`,
-                          transform: "translate(-50%, -50%)",
-                        }}
-                        onClick={() => handleRegionSelect(region.name)}
-                      >
-                        {region.name}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+                {/* Hotspots for regions */}
+                {regions.map((region) => (
+                  <Button
+                    key={region.id}
+                    variant="outline"
+                    size="sm"
+                    className={`absolute ${selectedRegion === region.name ? "bg-red-500 text-white" : "bg-white/80"}`}
+                    style={{
+                      top: `${50 - region.coordinates.lat * 0.7}%`,
+                      left: `${50 + region.coordinates.lng * 0.4}%`,
+                      transform: "translate(-50%, -50%)",
+                      maxWidth: "120px",
+                      fontSize: region.name.length > 10 ? "0.7rem" : "0.8rem",
+                      padding: "4px 8px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    onClick={() => handleRegionSelect(region.name)}
+                  >
+                    {region.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </motion.div>
 
           {/* Data sidebar */}
@@ -303,20 +213,6 @@ const WorldMapInterface: React.FC<WorldMapInterfaceProps> = ({
             />
           </motion.div>
         </div>
-
-        {/* Time controls */}
-        <motion.div
-          className="p-4 border-t border-gray-200 dark:border-gray-800"
-          variants={itemVariants}
-        >
-          <TimeControls
-            isPlaying={isPlaying}
-            onPlay={handlePlay}
-            onPause={handlePause}
-            onTimeChange={handleTimeChange}
-            onSpeedChange={handleSpeedChange}
-          />
-        </motion.div>
       </div>
     </motion.div>
   );
